@@ -2,18 +2,31 @@ version: '3.8'
 services:
   app:
     build: .
-    ports: ["8080:8080"]
-    depends_on: [mysql, kafka]
+    container_name: app-1
+    ports:
+      - "8080:8080"
+    depends_on:                     # ADD/UPDATE THIS
+      mysql:
+        condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shopgrid
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/shopgrid?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
 
   mysql:
     image: mysql:8.0
+    container_name: mysql-1
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: shopgrid
-    ports: ["3306:3306"]
+    ports:
+      - "3306:3306"
+    healthcheck:                    # ADD THIS BLOCK
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
