@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.cache.annotation.Cacheable;
 
 @Service
 public class ProductService {
@@ -28,8 +29,10 @@ public class ProductService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
-    
+
+   @Cacheable(value = "products")
     public ProductResponse getProductById(Long id) {
+        System.out.println("!!! DATABASE HIT !!! Product ID: " + id); 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
         return mapToResponse(product);
